@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # VISOR ELECTROPERÚ – CMG + Caudales La Mejorada
-# Versión FINAL: leyenda centrada, Santa Rosa por defecto,
+# Versión: leyenda centrada, Santa Rosa por defecto,
 # línea límite de último medido, exportación a Excel, CMG en medias horas.
 
 import pandas as pd
@@ -62,8 +62,13 @@ def load_cmg():
     cos = build_datetime_cmg(cos)
     ieod = build_datetime_cmg(ieod)
 
+    # Evita que 'Fecha'/'Hora' y 'datetime' se cuelen como barras (case-insensitive)
     ignore = ["fecha", "hora", "datetime"]
     barras = [c for c in pdo.columns if c.lower() not in ignore]
+
+    if not barras:
+        st.error("No se encontraron columnas de barras en la hoja CMG-PDO.")
+        st.stop()
 
     def melt(df):
         out = df[["datetime"] + barras].melt(
@@ -75,6 +80,7 @@ def load_cmg():
         out["valor"] = pd.to_numeric(out["valor"], errors="coerce")
         return out.dropna()
 
+    # Devuelve también IEOD
     return melt(pdo), melt(cos), melt(ieod), barras
 
 # ============================================================
@@ -116,7 +122,8 @@ st.title("Visor CMG + Caudales – ELECTROPERÚ")
 
 c1, c2, c3 = st.columns([1,1,1])
 with c1:
-    past_hours = st.slider("Horas hacia atrás", 1, 48, 24)
+    # Hasta 48 horas hacia atrás
+    past_hours = st.slider("Horas hacia atrás", min_value=1, max_value=48, value=24)
 with c2:
     if st.button("🔄 Refrescar"):
         st.cache_data.clear()
@@ -139,7 +146,8 @@ sel_bars = st.multiselect("Selecciona barras CMG:", barras, default=default_bar)
 now = datetime.now()
 start = now - timedelta(hours=past_hours)
 
-end_CMG = max_dt(cos_long)
+# Toma el máximo entre PDO, COS e IEOD
+end_CMG = max_dt(pdo_long, cos_long, ieod_long)
 end_Caudal = max_dt(proy)
 end = max(v for v in [end_CMG, end_Caudal] if v is not None)
 
@@ -155,28 +163,44 @@ ultima_medida = med_w["datetime"].max() if not med_w.empty else None
 # GRAFICO CMG
 # ============================================================
 
-st.subheader("Costos Marginales – PDO vs COS")
+st.subheader("Costos Marginales – PDO vs COS – IEOD")
 
+# Colores fijos por serie (iguales para todas las barras)
+COLOR_PDO = "#1f77b4"  # azul
+COLOR_COS = "#ff7f0e"  # naranja
+COLOR_IEOD = "#2ca02c" # verde
+
+# Para distinguir barras dentro de la misma serie, usamos legendgroup y nombres claros
 fig_cmg = make_subplots(specs=[[{"secondary_y": False}]])
-pal = ["#1f77b4","#ff7f0e","#2ca02c","#9467bd","#8c564b","#e377c2"]
 
-for i, b in enumerate(sel_bars):
-    color = pal[i % len(pal)]
+for b in sel_bars:
     seg_pdo = pdo_w[pdo_w["barra"] == b]
     seg_cos = cos_w[cos_w["barra"] == b]
     seg_ieod = ieod_w[ieod_w["barra"] == b]
 
+    # PDO (línea sólida)
     fig_cmg.add_trace(go.Scatter(
         x=seg_pdo["datetime"], y=seg_pdo["valor"],
-        mode="lines", line=dict(color=color), name=f"{b} – PDO"
+        mode="lines",
+        line=dict(color=COLOR_PDO),
+        name=f"{b} – PDO",
+        legendgroup="PDO"
     ))
+    # COS (línea discontinua)
     fig_cmg.add_trace(go.Scatter(
         x=seg_cos["datetime"], y=seg_cos["valor"],
-        mode="lines", line=dict(color=color, dash="dash"), name=f"{b} – COS"
+        mode="lines",
+        line=dict(color=COLOR_COS, dash="dash"),
+        name=f"{b} – COS",
+        legendgroup="COS"
     ))
+    # IEOD (línea punteada)
     fig_cmg.add_trace(go.Scatter(
         x=seg_ieod["datetime"], y=seg_ieod["valor"],
-        mode="lines", line=dict(color=color, dash="dash"), name=f"{b} – IEOD"
+        mode="lines",
+        line=dict(color=COLOR_IEOD, dash="dot"),
+        name=f"{b} – IEOD",
+        legendgroup="IEOD"
     ))
 
 fig_cmg.update_layout(
@@ -208,7 +232,7 @@ fig_cau.add_trace(go.Scatter(
     name="Proyección"
 ))
 
-# ---- PARCHE: LÍNEA VERTICAL (shape) ----
+# ---- LÍNEA VERTICAL: Última medida ----
 if ultima_medida is not None:
     fig_cau.add_shape(
         type="line",
@@ -220,7 +244,6 @@ if ultima_medida is not None:
         yref="paper",
         line=dict(color="gray", width=2, dash="dot")
     )
-
     fig_cau.add_annotation(
         x=ultima_medida,
         y=1.05,
