@@ -174,6 +174,10 @@ for i, b in enumerate(sel_bars):
         x=seg_cos["datetime"], y=seg_cos["valor"],
         mode="lines", line=dict(color=color, dash="dash"), name=f"{b} – COS"
     ))
+    fig_cmg.add_trace(go.Scatter(
+        x=seg_ieod["datetime"], y=seg_ieod["valor"],
+        mode="lines", line=dict(color=color, dash="dash"), name=f"{b} – IEOD"
+    ))
 
 fig_cmg.update_layout(
     height=430,
@@ -181,7 +185,7 @@ fig_cmg.update_layout(
     margin=dict(l=40, r=40, t=10, b=80)
 )
 fig_cmg.update_xaxes(title="Fecha‑Hora")
-fig_cmg.update_yaxes(title="CMg (PEN/MWh)")
+fig_cmg.update_yaxes(title="CMg (US$/MWh)")
 
 st.plotly_chart(fig_cmg, use_container_width=True)
 
@@ -248,6 +252,7 @@ if export_btn:
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         pdo_w.to_excel(writer, sheet_name="CMG_PDO", index=False)
         cos_w.to_excel(writer, sheet_name="CMG_COS", index=False)
+        ieod_w.to_excel(writer, sheet_name="CMG_IEOD", index=False)
         med_w.to_excel(writer, sheet_name="Caudal_Medido", index=False)
         proy_w.to_excel(writer, sheet_name="Caudal_Proyeccion", index=False)
 
