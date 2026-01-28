@@ -164,7 +164,7 @@ for i, b in enumerate(sel_bars):
     color = pal[i % len(pal)]
     seg_pdo = pdo_w[pdo_w["barra"] == b]
     seg_cos = cos_w[cos_w["barra"] == b]
-    seg_iedo = ieod_w[ieod_w["barra"] == b]
+    seg_ieod = ieod_w[ieod_w["barra"] == b]
 
     fig_cmg.add_trace(go.Scatter(
         x=seg_pdo["datetime"], y=seg_pdo["valor"],
