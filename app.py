@@ -116,7 +116,7 @@ st.title("Visor CMG + Caudales – ELECTROPERÚ")
 
 c1, c2, c3 = st.columns([1,1,1])
 with c1:
-    past_hours = st.slider("Horas hacia atrás", 1, 24, 12)
+    past_hours = st.slider("Horas hacia atrás", 1, 48, 24)
 with c2:
     if st.button("🔄 Refrescar"):
         st.cache_data.clear()
