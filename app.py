@@ -75,7 +75,7 @@ def load_cmg():
         out["valor"] = pd.to_numeric(out["valor"], errors="coerce")
         return out.dropna()
 
-    return melt(pdo), melt(cos), barras
+    return melt(pdo), melt(cos), melt(ieod), barras
 
 # ============================================================
 # HIDRO‑ELP – Lectura EXACTA Fecha + Hora
