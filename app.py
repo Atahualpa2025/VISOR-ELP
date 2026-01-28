@@ -128,7 +128,7 @@ with c3:
 # CARGAR DATA
 # ============================================================
 
-pdo_long, cos_long, barras = load_cmg()
+pdo_long, cos_long, ieod_long, barras = load_cmg()
 med, proy = load_hidro()
 
 # Santa Rosa por defecto
