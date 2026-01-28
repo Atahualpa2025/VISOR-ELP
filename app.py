@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from io import BytesIO
 
-st.set_page_config(page_title="Visor CMG + Caudales", layout="wide")
+st.set_page_config(page_title="Información de costos marginales y caudales", layout="wide")
 FILE = Path.cwd() / "Fuente.xlsx"
 
 # ============================================================
@@ -118,12 +118,12 @@ def load_hidro():
 # UI
 # ============================================================
 
-st.title("Visor CMG + Caudales – ELECTROPERÚ")
+st.title("Proyección de costos marginales y caudales - CENTRO SUPERVISOR DE LA OPERACIÓN")
 
 c1, c2, c3 = st.columns([1,1,1])
 with c1:
     # Hasta 48 horas hacia atrás
-    past_hours = st.slider("Horas hacia atrás", min_value=1, max_value=48, value=24)
+    past_hours = st.slider("Horas atrás", min_value=1, max_value=48, value=24)
 with c2:
     if st.button("🔄 Refrescar"):
         st.cache_data.clear()
@@ -163,7 +163,7 @@ ultima_medida = med_w["datetime"].max() if not med_w.empty else None
 # GRAFICO CMG
 # ============================================================
 
-st.subheader("Costos Marginales – PDO vs COS – IEOD")
+st.subheader("Costos Marginales – PDO vs COS vs IEOD")
 
 # Colores fijos por serie (iguales para todas las barras)
 COLOR_PDO = "#1f77b4"  # azul
@@ -217,7 +217,7 @@ st.plotly_chart(fig_cmg, use_container_width=True)
 # GRAFICO CAUDALES
 # ============================================================
 
-st.subheader("Caudal – La Mejorada (Medido vs Proyección)")
+st.subheader("Caudal en La Mejorada")
 
 fig_cau = make_subplots(specs=[[{"secondary_y": False}]])
 
