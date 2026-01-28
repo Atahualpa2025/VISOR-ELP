@@ -56,9 +56,11 @@ def build_datetime_cmg(df, col_fecha="Fecha"):
 def load_cmg():
     pdo = pd.read_excel(FILE, sheet_name="CMG-PDO", engine="openpyxl")
     cos = pd.read_excel(FILE, sheet_name="CMG-COS", engine="openpyxl")
+    ieod = pd.read_excel(FILE, sheet_name="CMG-IEOD", engine="openpyxl")
 
     pdo = build_datetime_cmg(pdo)
     cos = build_datetime_cmg(cos)
+    ieod = build_datetime_cmg(ieod)
 
     ignore = ["fecha", "hora", "datetime"]
     barras = [c for c in pdo.columns if c.lower() not in ignore]
@@ -143,6 +145,7 @@ end = max(v for v in [end_CMG, end_Caudal] if v is not None)
 
 pdo_w = window_filter(pdo_long[pdo_long["barra"].isin(sel_bars)], start, end)
 cos_w = window_filter(cos_long[cos_long["barra"].isin(sel_bars)], start, end)
+ieod_w = window_filter(ieod_long[ieod_long["barra"].isin(sel_bars)], start, end)
 med_w = window_filter(med, start, end)
 proy_w = window_filter(proy, start, end)
 
@@ -161,6 +164,7 @@ for i, b in enumerate(sel_bars):
     color = pal[i % len(pal)]
     seg_pdo = pdo_w[pdo_w["barra"] == b]
     seg_cos = cos_w[cos_w["barra"] == b]
+    seg_iedo = ieod_w[ieod_w["barra"] == b]
 
     fig_cmg.add_trace(go.Scatter(
         x=seg_pdo["datetime"], y=seg_pdo["valor"],
